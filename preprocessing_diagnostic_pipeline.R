@@ -97,7 +97,7 @@ for(file in files){
 
 # Read patient class and select patients----------------------------------------
 
-metadata <- readxl::read_xlsx("Gegevens8kleurenmetFU.xlsx")
+metadata <- readxl::read_xlsx("")
 metadata$MDS <- as.factor(metadata$MDS)
 
 selection <- metadata %>% 
@@ -111,7 +111,7 @@ selection <- metadata %>%
 seed <- 1
 plot <- TRUE
 cols_to_use <- c(1, 3:7, 9:12)
-tubes <- 2:7
+tubes <- 1:6
 outputDir <- "results"
 dir.create(outputDir)
 
