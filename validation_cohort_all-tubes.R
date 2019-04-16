@@ -4,7 +4,7 @@ source("helperFunctions_diagnostic_pipeline.R")
 
 # Directory in which the control sample is located
 # This sample is used to choose uniform channel/marker names
-control_files_dir <- "C:/Users/carol/Documents/Compensatie files"
+control_files_dir <- ""
 
 
 # Directory in which the raw fcs files are saved
@@ -13,7 +13,7 @@ id <-  ""
 dir <- paste0("", id)
 #dir <- paste0("C:/Users/carol/Desktop/caro/", id)
 # Tube numbers of interest
-tubes <- c("2", "3", "4", "5", "6", "7")
+tubes <- c("1", "2", "3", "4", "5", "6")
 # Files in the given directory which match the tube numbers
 files <- list.files(dir)
 
@@ -32,11 +32,10 @@ feature_types <- c(#pC= "^pC[0-9]*",
 outputDir <- "Final_model"
 
 # 1. Preprocessing -------------------------------------------------------------
-tube <- tubes[1]
 for(tube in tubes){
 
   # Read the right control file for this tube
-  control_file <- paste0("ft4368 NBM_Tube_00", tube, "_qc.fcs")
+  control_file <- paste0("", tube, "_qc.fcs")
   ff_control <- read.FCS(file.path(control_files_dir, 
                                    control_file))
   
@@ -112,7 +111,7 @@ for(tube in tubes){
 
 # 2. Plotting new file on FlowSOM models ----------------------------------------
 
-version <- "vier"
+version <- ""
 
 features_all <- NULL
 for(tube in tubes){
@@ -122,7 +121,7 @@ for(tube in tubes){
   file <- files[select]
  
   model_file <- file.path(outputDir,
-                          paste0("final_fsommodel_vier", tube, ".RDS"))
+                          paste0("final_fsommodel", version, tube, ".RDS"))
   fsommodel <- readRDS(model_file)
   features_enr <- new_files_to_FlowSOM(fsommodel$FlowSOM,
                                        files = file,
@@ -151,7 +150,7 @@ for(tube in tubes){
 
 
 # 3. Performing classification on new file -------------------------------------
-final_model <- readRDS("C:/Users/carol/Documents/final_model_complete_hoi9.1.RDS")
+final_model <- readRDS("")
 prediction <-  model_testing(final_model,
                              data = features_all,
                              classification_method = "randomForest",
