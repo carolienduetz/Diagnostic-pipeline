@@ -4,7 +4,7 @@ source("helperFunctions_diagnostic_pipeline.R")
 
 # Directory in which the control sample is located
 # This sample is used to choose uniform channel/marker names
-control_files_dir <- "C:/Users/carol/Documents/Compensatie files"
+control_files_dir <- ""
 
 
 # Directory in which the raw fcs files are saved
@@ -38,7 +38,7 @@ tube <- tubes[1]
 for(tube in tubes){
 
   # Read the right control file for this tube
-  control_file <- paste0("ft4368 NBM_Tube_00", tube, "_qc.fcs")
+  control_file <- paste0("", tube, "_qc.fcs")
   ff_control <- read.FCS(file.path(control_files_dir, 
                                    control_file))
   
