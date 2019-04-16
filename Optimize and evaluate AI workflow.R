@@ -12,7 +12,7 @@ verbose <- FALSE
 seeds <- 3
 nFolds <- 5
 percentTestPerFold <- 0.2
-tubes <- 4
+tubes <- 
 patient_labels <- c(
   "1" = "MDS",
   "2" = "Control")
