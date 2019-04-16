@@ -57,7 +57,7 @@ new_files_to_FlowSOM <- function(fsom,
                                              apply(expand.grid(paste0("MC",1:max(as.numeric(fsom$metaclustering)),"_CV_"), 
                                                                fsom$FlowSOM$prettyColnames[MFI_markers]), 1 , paste, collapse="")))
   
-  # abbundance inlezen in matrix (met volledig aantal cellen)-------------------
+  # abbundance matrix (total number of cells)-------------------
   for(ft in names(files)){
     if (verbose) { message("Mapping ", ft) }
     ff <- read.FCS(files[ft])
@@ -383,8 +383,7 @@ read_metadata <- function(file){
                    MDS = as.factor(MDS),
                    WHO = as.factor(WHO),
                    #`IPSS` = as.factor(`IPSS`),
-                   Fenotypering_nr = gsub("ft", "", Fenotypering_nr)) %>% 
-            dplyr::filter(Fenotypering_nr > 4000)) # Remove last line !!!
+                   Fenotypering_nr = gsub("ft", "", Fenotypering_nr))
 }
 
 get_files_in_dir <- function(directory){
