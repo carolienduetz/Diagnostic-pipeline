@@ -12,7 +12,7 @@ library('flowDensity')
 dir <- ""
 files_of_interest <- list.files(dir, pattern= "")
 
-# WWuality control
+# Quality control
 
 file <- files_of_interest[1]
 for (file in files_of_interest) {
@@ -35,7 +35,7 @@ pheatmap::pheatmap(pctg,
 dev.off()
 
 # Doublet/outlier removal, transformation, uniform flowframes and scaling ------
-dir <- ""
+dir_qc <- "resultsQC"
 files_of_interest <- list.files(dir_qc , pattern= "")
 
   # Upload fcs file for creating uniform flowframes ------------------------------
@@ -62,14 +62,20 @@ for(file in files){
     comp_tmp <- strsplit(ff@description$INFINISPILL, ",")[[1]]
     comp <- matrix(as.numeric(comp_tmp[11:74]), ncol = 8, byrow = TRUE)
     colnames(comp) <- gsub(":.*", "", comp_tmp[3:10])
-    colnames(comp) <- gsub("CD34 Cy5-5", "PerCP-A", colnames(comp))
+    colnames(comp) <- gsub("", "", colnames(comp))
     ff_c <- compensate(ff, comp)
     
     # Transform, parameters, create uniform flowframes -------------------------    
     channels_to_transform <- colnames(comp)
+    ff_t <- transform(ff_c, transformList(channels_to_transform, arcsinhTransform(a = 0, b = 1/150, c = 0)))
     ff_t_new <- flowFrame(exprs = flowCore::exprs(ff_t)[,colnames(ff_13)],
                           parameters = ff_13@parameters,
                           description = ff_13@description)
+    
+    flowCore::exprs(ff_t_new) <-apply(flowCore::exprs(ff_t_new), 2, function(x){
+      return((x - quantile(x, 0.001)) / (quantile(x, 0.999) - quantile(x, 0.001)))
+    })
+    
    
        suppressWarnings(write.FCS(ff_t_new, file.path(preprocessed_dir, gsub("/", "_", file))))
     
@@ -97,7 +103,7 @@ for(file in files){
 
 # Read patient class and select patients----------------------------------------
 
-metadata <- readxl::read_xlsx("")
+metadata <- readxl::read_xlsx("metadata.xlsx")
 metadata$MDS <- as.factor(metadata$MDS)
 
 selection <- metadata %>% 
@@ -129,7 +135,7 @@ for(tube in tubes){
   set.seed(seed)
   ff_agg <- AggregateFlowFrames(file.path(preprocessed_dir,
                                           files),
-                                cTotal = 200*length(files),
+                                cTotal = 2000*length(files),
                                 writeOutput = FALSE,
                                 outputFile = paste0(outputDir,"/Tube_00",tube,"_agg",seed,".fcs"))
   message("  Aggregated ",length(files)," files.")
@@ -177,12 +183,12 @@ for(tube in tubes){
     pdf(file.path(outputDir, paste0("FlowSOM_Tube",tube,".pdf")),
         useDingbats = FALSE)
     
-    #Flowsom met legenda
+    #Flowsom with legend
     PlotStars(UpdateNodeSize(fsom$FlowSOM, maxNodeSize = 8, reset = TRUE))
     PlotStars(UpdateNodeSize(fsom$FlowSOM, maxNodeSize = 8, reset = TRUE),
               view = "grid")
     
-    #Flowsom met metaclustering
+    #Flowsom with metaclustering
     PlotStars(UpdateNodeSize(fsom$FlowSOM, maxNodeSize = 8, reset = TRUE),
               backgroundValues = fsom$metaclustering)
     dev.off()
@@ -196,7 +202,7 @@ for(tube in tubes){
                                    as.character(1:fsom$FlowSOM$map$nNodes)))
   
   
-  # abbundance inlezen in matrix (met volledig aantal cellen)
+  # determine abundance for all cells in matrix 
   for(i in seq_along(files)){
     file <- files[i]
     message(file)
@@ -239,9 +245,7 @@ for(tube in tubes){
     
     annotation_col <- data.frame(Metacluster = as.numeric(fsom$metaclustering))
     rownames(annotation_col) <- colnames(pctgs)
-    
-    breaksList = seq(0, 4, by = 1)
-    
+      
     pheatmap::pheatmap(meta_pctgs,
                        scale = "column",
                        annotation_col = annotation_col,
@@ -266,8 +270,6 @@ for(tube in tubes){
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           axis.text.x = element_blank(),
-          #axis.title.y = element_blank(),
-          #axis.title.x = element_blank(),
           axis.line = element_line(colour = "black", size = 2),
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank()) 
