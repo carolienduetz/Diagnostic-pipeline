@@ -11,8 +11,7 @@ dir.create(outputDir)
 verbose <- FALSE
 seeds <- 3
 nFolds <- 5
-percentTestPerFold <- 0.2
-tubes <- 
+tubes <- 1:6
 patient_labels <- c(
   "1" = "MDS",
   "2" = "Control")
