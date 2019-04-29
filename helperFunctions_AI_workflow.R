@@ -10,13 +10,15 @@ library(partykit)
 library(mRMRe)
 library(flowAI)
 
-#' @param fsom  Result from calling FlowSOM function
-#' @param files Named array with full path to training fcs files and 
-#'              phenotype numbers as names
-#' 
+#' @param fsom        Result from calling FlowSOM function
+#' @param files       Named array with full path to training fcs files and 
+#'                    phenotype numbers as names
+#' @param metadata    File with patientinformation
+#' @param MFI_markers Select columns/parameters for building the FlowSOM tree
+#' @param verbose         If TRUE the model will return comment
 #' @return Data frame including counts (Cx), percentages (pCx), and 
 #'         relative percentages (compared to the metacluster) per cluster (rCx) 
-#'         and percentages per metacluster (MC)
+#'         and percentages per metacluster (MC), MFI and CV per (meta)cluster
 new_files_to_FlowSOM <- function(fsom, 
                                  files, 
                                  metadata,
@@ -61,10 +63,6 @@ new_files_to_FlowSOM <- function(fsom,
   for(ft in names(files)){
     if (verbose) { message("Mapping ", ft) }
     ff <- read.FCS(files[ft])
-    #NB ingevoegd voor Londen
-    #ff@parameters@data$desc[6] <- "CD34 Cy5-5"
-    #ff@parameters@data$desc[9] <- "HLA-DR"
-    #tot hier
     fsom_tmp <- NewData(fsom$FlowSOM, ff)
     if (verbose) { message("New data ", ft) }
     
@@ -119,8 +117,6 @@ new_files_to_FlowSOM <- function(fsom,
       channel <- getChannelMarker(ff, marker)[,"name"]
       MFI_metaclusters[ft, na_id] <- metaclustermfis[as.numeric(cluster), 
                                                                channel]
-      #CV_metaclusters[ft, na_id] <- MetaclusterCVs(fsom)[as.numeric(cluster), 
-      #                                                         channel]
     }
     
     na_ids <- which(is.na(CV_metaclusters[ft, ]))
@@ -187,9 +183,11 @@ new_files_to_FlowSOM <- function(fsom,
 #'                        phenotype numbers as names
 #' @param cols_to_use     Column names or ids from the fcs files to use in the
 #'                        FlowSOM clustering
-#' @param features_to_use Array with which feature types are passed to the RF,
-#'                        options can include "C", "pC", "rC", "MC"
-#' 
+#' @param nCellsPerFile   The number of cells per file for to use in the FlowSOM clustering
+#' @param gridSize        gridSize to determine the amount of metaclusters
+#' @param nClus           number of clusters
+#' @param seed            Set seed
+#' @param verbose         If TRUE the model will return comments
 #' @return Returns a list in which the first item is a FlowSOM result and
 #'         the second item a RF model
 
@@ -322,12 +320,8 @@ model_testing <- function(model,
 
   if (classification_method == "randomForest") {
     probabilities <- predict(model$classifier,
-                     data[ , model$features_to_use])$predictions   
+      	                     data[ , model$features_to_use])$predictions   
     
-    
-    #rf_pred <- predict(model$classifier,
-    #                         data[ , model$features_to_use])
-    #probabilities <- rf_pred$predictions
   } else if (classification_method == "SVM") { 
     svm_pred <- predict(model$classifier,
                         data[ , model$features_to_use],
@@ -342,34 +336,9 @@ model_testing <- function(model,
     probabilities <- cbind(1 - gm, gm)
   }
   
-  #evaluation of performance sensitivity/specificity/AUC------------------------
-  if ("MDS_class" %in% colnames(data)) {
-    auc_evaluation <- prediction(probabilities[,2],
-                                 data[, "MDS_class"])
-    
-    cutoff_id <- which.max(performance(auc_evaluation, "spec")@y.values[[1]] + 
-                             performance(auc_evaluation, "sens")@y.values[[1]])
-    cutoff <- auc_evaluation@cutoffs[[1]][cutoff_id]
-    
-    if(plot){
-      performance_plot <- performance(auc_evaluation, 
-                                      measure = "tpr", 
-                                      x.measure = "fpr")
-      plot(performance_plot, 
-           xlab = "population", ylab = "target population", 
-           col = "blue", lwd = 2)
-      lines(c(0,1),c(0,1),col = "grey")
-      
-    }
-  } else { 
-    auc_evaluation = NULL
-    cutoff = NULL
-  }
   
   return(list(data = data,
-              prediction = probabilities,
-              evaluation = auc_evaluation,
-              best_cutoff = cutoff))
+              prediction = probabilities)
 }
 
 # include metadata for files ---------------------------------------------------
@@ -382,13 +351,12 @@ read_metadata <- function(file){
                    Date_death = as.Date(as.numeric(Date_death), origin="1899-12-30"),
                    MDS = as.factor(MDS),
                    WHO = as.factor(WHO),
-                   #`IPSS` = as.factor(`IPSS`),
+                   `IPSS` = as.factor(`IPSS`),
                    Fenotypering_nr = gsub("ft", "", Fenotypering_nr))
 }
 
 get_files_in_dir <- function(directory){
-  files_in_dir <- list.files(directory, #pattern=".*fcs$", ###WEGHALEN
-                             full.names = TRUE)
+  files_in_dir <- list.files(directory, full.names = TRUE)
   names(files_in_dir) <- gsub(".*([0-9][0-9][0-9][0-9]).*", 
                               "\\1", 
                               files_in_dir)
