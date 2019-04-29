@@ -1,7 +1,7 @@
 
 # load functions from other file -----------------------------------------------
 
-source("helperFunctions_diagnostic_pipeline.R")
+source("helperFunctions_AI_workflow.R")
 
 # Set some parameters ----------------------------------------------------------
 
@@ -74,9 +74,7 @@ names(aucs) <- as.character(nFeatures_options)
 seed <- seeds[1]
 
 for(seed in seeds){
-  fold <- nFolds[1]
   for(fold in seq_len(nFolds)){
-    tube <- tubes[1]
     for(tube in tubes){
       
       message("Processing tube ",tube)
