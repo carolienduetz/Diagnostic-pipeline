@@ -1,4 +1,4 @@
-source("helperFunctions_diagnostic_pipeline.R")
+source("helperFunctions_AI_workflow.R")
 
 # Final diagnostic pipeline ----------------------------------------------------
 
