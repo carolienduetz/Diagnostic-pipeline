@@ -1,4 +1,4 @@
-source("helperFunctions_diagnostic_pipeline.R")
+source("helperFunctions_AI_workflow.R")
 
 # Create final model -----------------------------------------------------------
 
@@ -8,10 +8,7 @@ version <-""
 
 # parameters -------------------------------------------------------------------
 verbose <- FALSE
-seeds <- 1
 seed <- 1
-nFolds <- 5
-percentTestPerFold <- 0.2
 tubes <- 2:7
 patient_labels <- c("1" = "MDS",
                     "2" = "Control")
