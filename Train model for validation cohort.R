@@ -30,7 +30,7 @@ classification_method <- "randomForest" #GMnet" # "randomForest" or "SVM"
 
 # read metadata
 
-metadata <- read_metadata("") %>% 
+metadata <- read_metadata("metadata.xlsx") %>% 
   dplyr::mutate(MDS_class = as.factor(patient_labels[as.character(MDS)])) %>% 
   dplyr::filter(!is.na(MDS_class))
 
